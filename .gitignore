@@ -1,0 +1,38 @@
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+
+# --- Environnements virtuels ---
+env/
+venv/
+.venv/
+
+# --- Logs ---
+*.log
+
+# --- IDE / Éditeurs ---
+.vscode/
+.idea/
+
+# --- Jupyter Notebooks ---
+.ipynb_checkpoints/
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+
+# --- Build / Dist ---
+build/
+dist/
+*.egg-info/
+
+# --- Config perso ---
+*.env
+
+
+annotations/
+mini_coco/
+thermal_coco/
