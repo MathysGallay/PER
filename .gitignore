@@ -37,3 +37,4 @@ annotations/
 mini_coco/
 thermal_coco/
 *.zip
+models/
