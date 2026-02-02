@@ -33,7 +33,26 @@ dist/
 *.env
 
 
-annotations/
-mini_coco/
-thermal_coco/
+# --- Archive (travaux précédents) ---
+archive_v1/data/mini_coco/
+archive_v1/data/thermal_coco/
+archive_v1/data/thermal_yolo/
+archive_v1/data/annotations/
+
+# Dossiers de résultats YOLO
+runs/
 *.zip
+
+# Expérimentations (peuvent être volumineuses)
+experiments/*/results/
+experiments/*/runs/
+
+# Modèles et repos externes (volumineux)
+models/yolov5/
+models/yolov8/
+*.pt
+!yolov8s.pt
+
+# --- Dossiers externes ---
+SIA_FINAL/
+Thermal-image-2/
