@@ -1,0 +1,11 @@
+
+# Configuration pour ancien dataset (archive)
+# train: archive_v1/data/thermal_yolo/images/train
+# val: archive_v1/data/thermal_yolo/images/val
+
+# Configuration pour nouveau dataset PER_ENT
+train: datasets/PER_ENT/images/train
+val: datasets/PER_ENT/images/val
+
+nc: 10
+names: ['bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe']
