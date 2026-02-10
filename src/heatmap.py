@@ -19,7 +19,6 @@ if not cap.isOpened():
 fgbg = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=50, detectShadows=False)
 
 accumulator = None
-SEUIL_MAX_MOUVEMENT = 300
 
 MIN_AREA = 20 
 
@@ -55,7 +54,12 @@ def generate_frames():
         
         accumulator += motion_binary
 
-        heatmap_norm = (accumulator / SEUIL_MAX_MOUVEMENT) * 255
+        max_val = np.max(accumulator)
+        if max_val > 0:
+            heatmap_norm = (accumulator / max_val) * 255
+        else:
+            heatmap_norm = accumulator
+
         heatmap_norm = np.clip(heatmap_norm, 0, 255).astype(np.uint8)
         
         heatmap_color = cv2.applyColorMap(heatmap_norm, cv2.COLORMAP_JET)
