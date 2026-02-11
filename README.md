@@ -1,112 +1,85 @@
-# PER - Projet d'Étude et Recherche
+# PER - Object Detection on Thermal Images
 
-Projet de détection d'objets avec YOLO sur images thermiques.
+This repository contains the PER project for object detection with YOLO on thermal images.
 
-## Architecture du Projet
+## Quick Start
+
+```bash
+# Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# or
+.\venv\Scripts\activate  # Windows
+
+# Install dependencies
+pip install -r models/yolov5/requirements.txt
+pip install ultralytics roboflow
+```
+
+## Project Tree
 
 ```
 PER/
-├── README.md                    # Ce fichier
-├── PLAN_AVANCEMENT.md          # Plan et suivi du projet
-├── data.yaml                   # Configuration YOLO
-├── .gitignore                  # Fichiers ignorés par Git
+├── README.md                    # This guide
+├── data.yaml                    # YOLO dataset config
+├── yolov8s.pt                   # Base YOLOv8 weights
+├── annotations_trainval2017.zip # Optional COCO annotations archive
 │
-├── archive_v1/                 # Travail de la phase 1
-│   ├── scripts/               # Scripts Python v1
-│   ├── notebooks/             # Notebooks d'expérimentation v1
-│   └── data/                  # Anciens datasets
+├── archive_v1/                  # Phase 1 work (legacy)
+│   ├── scripts/
+│   ├── notebooks/
+│   └── data/
 │
-├── datasets/                   # Tous les datasets
-│   └── PER_ENT/               # Dataset principal actuel
-│       ├── images/
-│       │   ├── train/
-│       │   └── val/
-│       ├── labels/
-│       │   ├── train/
-│       │   └── val/
+├── datasets/                    # Datasets
+│   └── PER_ENT/                 # Main dataset
+│       ├── images/              # train/ and val/
+│       ├── labels/              # train/ and val/
 │       └── annotations/
 │
-├── benchmarks/                 # Résultats et évaluations
-│   ├── metrics/               # Métriques de performance
-│   ├── results/               # Résultats bruts
-│   └── reports/               # Rapports et visualisations
+├── benchmarks/                  # Benchmark outputs
+│   ├── metrics/
+│   ├── results/
+│   └── reports/
 │
-├── src/                        # Code source
-│   ├── preprocessing/         # Scripts de prétraitement
-│   ├── training/              # Scripts d'entraînement
-│   └── utils/                 # Utilitaires
+├── docs/                        # Documentation
 │
-├── tests/                      # Tests et évaluations
-│   ├── unit/                  # Tests unitaires
-│   ├── integration/           # Tests d'intégration
-│   └── models/                # Tests de modèles
+├── experiments/                 # Experiments
 │
-├── experiments/                # Expérimentations en cours
-│   └── TEST_PER/              # Vos tests actuels
-│
-├── notebooks/                  # Notebooks de démonstration
-│
-├── models/                     # Modèles YOLO
+├── models/                      # YOLO code and weights
 │   └── yolov5/
 │
-└── runs/                       # Résultats d'entraînement YOLO
+├── src/                         # Source code
+│   ├── inference/
+│   ├── preprocessing/
+│   ├── training/
+│   └── utils/
+│
+└── tests/                       # Tests
+    ├── unit/
+    ├── integration/
+    └── models/
 ```
 
-## Installation
+## Dataset Setup
+
+Just run the training command below. It will automatically download the dataset from Roboflow.
+
+## Training
 
 ```bash
-# Créer un environnement virtuel
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# ou
-.\venv\Scripts\activate  # Windows
-
-# Installer les dépendances
-pip install torch torchvision opencv-python numpy tqdm
-pip install ultralytics  # Pour YOLOv8
+# Roboflow training script
+python src/training/training_model.py
 ```
 
-## Utilisation
+## Evaluation
 
-### Ajouter des données au dataset PER_ENT
+- YOLOv5 results are saved in `models/yolov5/runs/`.
+- For benchmark reports, see `benchmarks/README.md`.
 
-1. Placez vos images dans `datasets/PER_ENT/images/train/` ou `val/`
-2. Placez les labels au format YOLO dans `datasets/PER_ENT/labels/train/` ou `val/`
-3. Vérifiez que `data.yaml` est à jour
+## Inference
 
-### Entraîner un modèle
+Check `src/inference/` for Raspberry Pi and video inference scripts.
 
-```bash
-# YOLOv5
-python models/yolov5/train.py --data data.yaml --cfg yolov5s.yaml --weights yolov5s.pt
+## Notes
 
-# YOLOv8
-yolo train data=data.yaml model=yolov8s.pt epochs=100
-```
-
-### Évaluer un modèle
-
-Les résultats sont automatiquement sauvegardés dans `runs/train/` et `runs/val/`.
-Pour des benchmarks personnalisés, consultez `benchmarks/README.md`.
-
-## Classes Détectées
-
-1. bird (oiseau)
-2. cat (chat)
-3. dog (chien)
-4. horse (cheval)
-5. sheep (mouton)
-6. cow (vache)
-7. elephant (éléphant)
-8. bear (ours)
-9. zebra (zèbre)
-10. giraffe (girafe)
-
-## Historique
-
-- **Phase 1** (archive_v1) : Expérimentation initiale avec conversion RGB→Thermique
-- **Phase 2** (actuelle) : Dataset PER_ENT et benchmarks structurés
-
-## Contact
-
-Voir `PLAN_AVANCEMENT.md` pour plus de détails sur l'avancement du projet.
+- `src/training/training_model.py` downloads the dataset from Roboflow.
