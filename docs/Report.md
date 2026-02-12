@@ -25,9 +25,9 @@
 **Cartes de chaleur nocturnes par caméra thermique pour le suivi d'animaux sauvages**
 
 ### 1.2 Équipe
-- **Yanis Lamiri** — Matériel / Intégration embarquée sur Raspberry pi 5 + accélérateur Hailo
-- **Yanis Abdellaoui** — Suivi / Métriques comportementales et analyse   / Intégration embarquée sur Jetson Orin Nanon
-- **Mathys Gallay** — Vision thermique / Modèle de détection (fine-tuning YOLO)  
+- **Yanis Lamiri, SI5-IAID** — Matériel / Intégration embarquée sur Raspberry pi 5 + accélérateur Hailo
+- **Yanis Abdellaoui, SI5-IAID** — Suivi / Métriques comportementales et analyse   / Intégration embarquée sur Jetson Orin Nanon
+- **Mathys Gallay, SI5-IAID** — Vision thermique / Modèle de détection (fine-tuning YOLO)  
 
 ### 1.3 Enseignant référent
 Jean Martinet
@@ -195,7 +195,7 @@ Cette section répond : **ce que nous avons construit** et **comment nous l'avon
 
 #### 5.1.2 Détection de mouvement + accumulation heatmap
 Nous avons implémenté une segmentation de mouvement légère (CV classique) :
-- soustraction de fond (ex. MOG2),
+- soustraction de fond (ex. MOG2),<>
 - filtrage morphologique pour réduire le bruit,
 - accumulation temporelle pour construire une heatmap de densité d'activité sur une fenêtre choisie.
 
@@ -222,23 +222,14 @@ Nous planifions/implémentons un suivi léger :
 
 #### 5.1.5 Sorties et stockage
 La pipeline stocke :
-- détections (par frame),
-- trajectoires (si activé),
-- heatmaps (par période),
-- métadonnées (timestamps, config device, version modèle),
 afin que l'analyse puisse se faire plus tard sans retraiter la vidéo brute.
 
-### 5.2 Processus : approche d'ingénierie
+#### 5.1.6 Illustration du pipeline
+![Pipeline de traitement thermique](../results/pipeline.png)
+*Figure : Schéma du pipeline complet (acquisition, détection, heatmap, stockage)*
 
-Nous avons suivi une approche itérative :
-1. **Preuve de concept détection de mouvement + heatmap** (feedback rapide, risque faible).
-2. **Intégration du modèle de détection** (fine-tuning + tests d'inférence sur échantillons thermiques).
-3. **Benchmark des options matérielles** pour valider la faisabilité sous contraintes.
-4. **Ajout du suivi et des métriques comportementales** une fois la détection stable.
 
-Cet ordre réduit le risque :
-- la heatmap produit déjà un résultat utile avant que la détection soit parfaite,
-- détection et suivi peuvent être améliorés progressivement.
+
 
 ### 5.3 Méthodes explorées (y compris archive_v1) et raisons d'évolution
 
@@ -305,6 +296,49 @@ Nous évaluons selon trois axes :
   - temps passé par zone
   - intensité d'activité dans le temps
 
+### 6.3 Résultats benchmark (synthèse)
+
+Les résultats ci-dessous proviennent de la synthèse globale (matériel + format d'inférence).
+
+| Plateforme | Format | FPS | Latence (ms) | Conso charge (W) | Efficacite (FPS/W) |
+| --- | --- | --- | --- | --- | --- |
+| Jetson Nano | TensorRT | 214.18 | 4.69 | 6.37 | 33.6 |
+| PC Portable (RTX 4060) | GPU | 81.96 | 13.72 | 17.64 | 4.65 |
+| RPi 5 + Hailo-8L | NPU | 44.39 | 21.57 | 4.80 | 32.40 |
+| Jetson Nano | PyTorch | 30.85 | 32.42 | 7.17 | 4.30 |
+
+
+
+#### Visualisations des benchmarks
+<div style="display: flex; flex-wrap: wrap; gap: 8px;">
+  <img src="../results/01_fps_comparison.png" alt="Benchmark 01" width="45%"/>
+  <img src="..//results/02_efficiency_comparison.png" alt="Benchmark 02" width="45%"/>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px;">
+  <img src="../results/03_latency_comparison.png" alt="Benchmark 03" width="45%"/>
+  <img src="../results/04_power_consumption.png" alt="Benchmark 04" width="45%"/>
+</div>
+
+
+### 6.4 Interpretation des resultats et choix cible
+
+1. **Impact critique de l'optimisation logicielle (TensorRT)**  
+L'analyse des résultats met en évidence le rôle prépondérant de l'optimisation logicielle sur l'architecture matérielle. Comme le montre la figure sur la vitesse d'inférence, le passage de PyTorch natif à TensorRT sur la même Jetson Nano multiplie les performances par un facteur de 6,9, faisant passer le framerate de 30.9 FPS à 214.2 FPS. Cette optimisation se répercute drastiquement sur la latence : le temps de traitement par image chute de 32.42 ms à seulement 4.69 ms avec TensorRT. Cette latence extrêmement faible est cruciale pour notre projet, car elle garantit qu'aucun mouvement rapide d'animal ne sera "manqué" entre deux frames de traitement.
+
+2. **Comparaison Embarqué vs Stationnaire**  
+Bien que le PC Portable (RTX 4060) soit une machine puissante, il est surpassé en vitesse d'inférence pure par la Jetson Nano optimisée (82 FPS contre 214 FPS) dans ce contexte spécifique. Cela s'explique probablement par le fait que le modèle utilisé est léger et profite pleinement de l'architecture dédiée de la Jetson sans subir l'overhead d'un système d'exploitation de bureau.
+
+3. **Efficacité énergétique et autonomie**  
+Le critère décisif pour un dispositif de surveillance de la faune sauvage est la consommation.
+• **Consommation brute** : La configuration RPi 5 + Hailo-8L s'avère être la plus économe en charge, consommant seulement 4.80 W, contre 6.37 W pour la Jetson Nano (TensorRT) et plus de 17 W pour le PC.
+• **Rendement (FPS/Watt)** : Si l'on rapporte la performance à la consommation, la Jetson Nano (TensorRT) et la RPi 5 + Hailo-8L sont au coude-à-coude avec respectivement 33.6 et 32.4 FPS/Watt.
+
+**Conclusion sur le choix matériel**  
+L'analyse croisée des benchmarks permet de justifier le choix final :
+• Le PC Portable est disqualifié pour un usage terrain à cause de son inefficacité énergétique (seulement 4.7 FPS/Watt).
+• La Jetson Nano avec TensorRT offre la meilleure performance brute et la latence la plus faible, idéale si le traitement algorithmique se complexifie (ajout de classification fine).
+• La RPi 5 + Hailo-8L représente le meilleur compromis pour l'autonomie pure (consommation absolue la plus basse) tout en maintenant un framerate temps réel solide (44.4 FPS).
+
 ---
 
 ## 7. Limites et suites à donner
@@ -327,15 +361,18 @@ Nous évaluons selon trois axes :
 
 ## 8. Bibliographie / Références
 
-> La bibliographie complète est suivie dans `references/` (BibTeX/Markdown) et citée dans la documentation.
+La bibliographie complète est suivie dans [docs/biblio.bib](docs/biblio.bib).
 
-Liste initiale de références (à compléter) :
-- Benchmark Edge AI pour modèles de détection (contraintes embarquées)
-- Détection faune thermique et dépendance à ΔT
-- Super-résolution pour détection de petits objets
-- CycleGAN pour l'adaptation de domaine
-- Comparatifs de trackers MOT (DeepSORT vs SORT/ByteTrack)
-- Études de suivi du bien-être en zoo et analyse comportementale via heatmaps
+Principales références utilisées :
+- Oishi et al., 2018. Animal Detection Using Thermal Images and Its Required Observation Conditions.
+- Chaverot et Carre, 2023. Improvement of small objects detection in thermal images.
+- Zhu et al., 2017. Unpaired Image-to-Image Translation Using Cycle-Consistent Adversarial Networks.
+- Batchuluun et Park, 2021. Deep Learning-Based Thermal Image Reconstruction and Object Detection.
+- Farooq et Corcoran, 2023. Evaluation of Thermal Imaging on Embedded GPU Platforms.
+- Zhang et Li, 2024. Benchmarking Deep Learning Models for Object Detection on Edge Computing Devices.
+- Pereira et Nunes, 2022. Sort and Deep-SORT Based Multi-Object Tracking for Mobile Robotics.
+- Diana et Norton, 2021. A Systematic Review of the Use of Technology to Monitor Welfare in Zoo Animals.
+- Zuerl et Eskofier, 2022. Automated Video-Based Analysis Framework for Behavior Monitoring of Individual Animals in Zoos.
 
 ---
 
@@ -355,3 +392,14 @@ Si des datasets/modèles externes ne sont pas commits, nous fournissons :
 - versioning,
 - checksums,
 - et commandes de reproductibilité.
+
+
+
+## 10. Dépôt GitHub
+
+Le code, les scripts et la documentation sont disponibles sur : [https://github.com/MathysGallay/PER](https://github.com/MathysGallay/PER)
+4. **Ajout du suivi et des métriques comportementales** une fois la détection stable.
+
+Cet ordre réduit le risque :
+- la heatmap produit déjà un résultat utile avant que la détection soit parfaite,
+- détection et suivi peuvent être améliorés progressivement.
