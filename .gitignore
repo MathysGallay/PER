@@ -57,3 +57,5 @@ models/yolov8/
 SIA_FINAL/
 Thermal-image-2/
 *.jpg
+*.npy
+*.png
