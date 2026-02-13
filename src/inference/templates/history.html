@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detection History</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <h1>Detection History</h1>
+
+    <div style="margin-bottom: 20px;">
+        <a href="/" class="button">Back to Dashboard</a>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Label</th>
+                    <th>Confidence</th>
+                    <th>BBox</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in detections %}
+                <tr>
+                    <td>{{ row['Timestamp'] }}</td>
+                    <td>{{ row['Label'] }}</td>
+                    <td>{{ row['Confidence'] }}</td>
+                    <td>{{ row['BBox'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>

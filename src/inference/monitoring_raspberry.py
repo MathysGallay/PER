@@ -3,6 +3,9 @@ gi.require_version('Gst', '1.0')
 from gi.repository import Gst, GLib
 import hailo
 import time
+import asyncio
+import json
+import csv
 
 import numpy as np
 import cv2
@@ -10,16 +13,17 @@ import threading
 import datetime
 import os
 import signal
-from flask import Flask, Response, render_template_string
-
+import uvicorn
+from fastapi import FastAPI, Request
+from fastapi.responses import StreamingResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 HEF_PATH = "/home/yanis/PER/yolov5_custom_hailo8l.hef"
 POSTPROC_SO = "/usr/local/hailo/resources/so/libyolo_hailortpp_postprocess.so"
 CSV_FILE = "detections.csv"
 COOLDOWN_TIME = 5.0
 MIN_AREA = 20
-
-app = Flask(__name__)
 
 last_frame_heatmap = None
 last_frame_inference = None
@@ -32,53 +36,41 @@ is_inferencing = True
 
 csv_lock = threading.Lock()
 
-@app.route('/')
-def index():
-    return '''
-    <html>
-        <head>
-            <title>Thermal AI Dashboard</title>
-            <style>
-                body { background: #111; color: white; font-family: sans-serif; text-align: center; }
-                .container { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
-                .feed { border: 2px solid #444; padding: 10px; border-radius: 8px; background: #222; }
-                h2 { margin: 10px 0; color: #aaa; }
-                img { width: 512px; height: 384px; object-fit: contain; image-rendering: pixelated; }
-                .status { margin-top: 20px; font-size: 1.2em; font-weight: bold; }
-                .active { color: #0f0; }
-                .idle { color: #555; }
-            </style>
-            <script>
-                setInterval(function() {
-                    fetch('/status').then(response => response.json()).then(data => {
-                        document.getElementById('status-text').innerText = data.status;
-                        document.getElementById('status-text').className = data.active ? 'status active' : 'status idle';
-                    });
-                }, 1000);
-            </script>
-        </head>
-        <body>
-            <h1>Thermal Surveillance Dashboard</h1>
-            <div id="status-text" class="status idle">Warming up...</div>
-            <div class="container">
-                <div class="feed">
-                    <h2>Heatmap (Motion)</h2>
-                    <img src="/heatmap_feed">
-                </div>
-                <div class="feed">
-                    <h2>AI Inference (On Demand)</h2>
-                    <img src="/inference_feed">
-                </div>
-            </div>
-        </body>
-    </html>
-    '''
+app = FastAPI()
 
-@app.route('/status')
-def status_json():
-    global is_inferencing
-    state = "INFERENCE ACTIVE" if is_inferencing else "IDLE (Monitoring)"
-    return {"status": state, "active": is_inferencing}
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/history", response_class=HTMLResponse)
+async def history(request: Request):
+    detections = []
+    if os.path.exists(CSV_FILE):
+        with open(CSV_FILE, 'r') as f:
+            reader = csv.DictReader(f)
+            detections = list(reader)
+            detections.reverse()
+    
+    return templates.TemplateResponse("history.html", {"request": request, "detections": detections})
+
+@app.get("/status")
+async def status_stream(request: Request):
+    async def event_generator():
+        while True:
+            if await request.is_disconnected():
+                break
+            
+            state = "INFERENCE ACTIVE" if is_inferencing else "IDLE (Monitoring)"
+            data = json.dumps({"status": state, "active": is_inferencing})
+            yield f"data: {data}\n\n"
+            
+            await asyncio.sleep(0.5)
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 def generate_heatmap_feed():
     global last_frame_heatmap
@@ -92,7 +84,6 @@ def generate_heatmap_feed():
         ret, buffer = cv2.imencode('.jpg', frame)
         if ret:
             yield (b'--frame\r\n'
-
                    b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
         time.sleep(0.05)
 
@@ -112,16 +103,16 @@ def generate_inference_feed():
                    b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
         time.sleep(0.05)
 
-@app.route('/heatmap_feed')
+@app.get("/heatmap_feed")
 def heatmap_feed():
-    return Response(generate_heatmap_feed(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return StreamingResponse(generate_heatmap_feed(), media_type="multipart/x-mixed-replace; boundary=frame")
 
-@app.route('/inference_feed')
+@app.get("/inference_feed")
 def inference_feed():
-    return Response(generate_inference_feed(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return StreamingResponse(generate_inference_feed(), media_type="multipart/x-mixed-replace; boundary=frame")
 
-def run_flask():
-    app.run(host='0.0.0.0', port=5000, debug=False, threaded=True, use_reloader=False)
+def run_fastapi():
+    uvicorn.run(app, host="0.0.0.0", port=5000, log_level="info")
 
 def log_detection_to_csv(detections):
     global CSV_FILE
@@ -308,9 +299,9 @@ def main():
     sink_inference = pipeline.get_by_name("sink_inference")
     sink_inference.connect("new-sample", on_inference_sample)
     
-    flask_thread = threading.Thread(target=run_flask)
-    flask_thread.daemon = True
-    flask_thread.start()
+    server_thread = threading.Thread(target=run_fastapi)
+    server_thread.daemon = True
+    server_thread.start()
 
     def poll_heatmap_loop():
         print("Heatmap polling thread started")
@@ -380,6 +371,7 @@ def main():
         loop.run()
     except KeyboardInterrupt:
         print("\nStopping...")
+        loop.quit() 
     finally:
         pipeline.set_state(Gst.State.NULL)
         save_artifacts()

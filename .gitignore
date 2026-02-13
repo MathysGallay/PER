@@ -56,3 +56,4 @@ models/yolov8/
 # --- Dossiers externes ---
 SIA_FINAL/
 Thermal-image-2/
+*.jpg
