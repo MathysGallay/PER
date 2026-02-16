@@ -59,3 +59,5 @@ Thermal-image-2/
 *.jpg
 *.npy
 *.png
+
+detections.csv
