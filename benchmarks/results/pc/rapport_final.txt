@@ -1,0 +1,23 @@
+
+===================================================
+        RAPPORT FINAL (PC NVIDIA)
+===================================================
+1. PERFORMANCES
+---------------------
+FPS Moyen       : 81.96 fps
+Latence Moyenne : 13.72 ms
+
+2. THERMIQUE (GPU)
+------------------
+Temp. Idle      : 45.5 °C
+Temp. Charge    : 50.7 °C
+Delta           : +5.1 °C
+
+3. ÉNERGIE (GPU Only)
+---------------------
+Conso Idle      : 2.15 W
+Conso Charge    : 17.64 W
+DELTA IA        : 15.49 W
+
+EFFICACITÉ (FPS/W) : 4.65
+===================================================

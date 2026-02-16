@@ -1,0 +1,2 @@
+Device,FPS_Moyen,Latence_ms,Temp_Idle_C,Temp_Charge_C,Conso_Idle_W,Conso_Charge_W,Efficacite_FPS_per_W
+Raspberry Pi 5 + Hailo,44.3929,21.57,47.88583333333333,48.17,3.43,4.8,32.40357664233577

@@ -1,0 +1,3 @@
+Device;FPS;Efficiency_FPS_per_Watt
+Jetson Nano (TensorRT);214,18;33,6
+RPi 5 + Hailo-8L;44,3929;32,40357664233577
