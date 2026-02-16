@@ -1,0 +1,41 @@
+# ==============================================================
+# PER Project - Requirements
+# ==============================================================
+
+# ----- Core ML / Vision -----
+ultralytics>=8.0.0          # YOLO (training + inference Jetson)
+torch>=2.0.0                # PyTorch (backend ultralytics)
+opencv-python>=4.8.0        # cv2 — vision, heatmap, drawing
+numpy>=1.24.0               # Manipulation de tableaux / matrices
+
+# ----- Web Frameworks -----
+fastapi>=0.100.0            # Dashboard monitoring (Jetson + Pi)
+uvicorn>=0.23.0             # Serveur ASGI pour FastAPI
+flask>=3.0.0                # Heatmap standalone + detection thermique
+jinja2>=3.1.0               # Templates HTML pour FastAPI
+
+# ----- Training / Dataset -----
+roboflow>=1.1.0             # Téléchargement datasets Roboflow
+sympy                       # Utilisé dans training_model.py
+
+# ----- Tests -----
+pytest>=7.0.0               # Framework de tests unitaires
+pyyaml>=6.0                 # Lecture data.yaml dans tests pipeline
+matplotlib>=3.7.0           # Visualisation résultats (test_images.py)
+
+# ----- Benchmarks / Monitoring -----
+psutil>=5.9.0               # Monitoring CPU/RAM/Temp (Raspberry Pi)
+
+# ----- Scripts utilitaires (archive_v1) -----
+requests>=2.31.0            # Téléchargement images COCO
+tqdm>=4.65.0                # Barres de progression
+
+# ----- Dépendances spécifiques plateforme (NON pip) -----
+# Les paquets ci-dessous ne s'installent PAS via pip standard.
+# Ils sont fournis par le système ou le SDK constructeur.
+#
+# hailo_platform              → SDK Hailo (Raspberry Pi + Hailo-8L)
+# hailo                       → Bindings Python Hailo
+# gi (PyGObject / GStreamer)   → sudo apt install python3-gi gstreamer1.0-tools
+#                                gstreamer1.0-plugins-base gstreamer1.0-plugins-good
+#                                gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
