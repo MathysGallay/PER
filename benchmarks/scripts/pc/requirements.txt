@@ -1,0 +1,3 @@
+psutil
+opencv-python
+pandas

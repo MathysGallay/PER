@@ -1,0 +1,22 @@
+
+===================================================
+        RAPPORT FINAL : RPI 5 + HAILO 8L
+===================================================
+1. PERFORMANCES
+---------------------
+FPS Moyen       : 44.39 fps
+Latence         : 21.57 ms
+
+2. THERMIQUE
+------------
+Temp. Idle      : 47.9 °C
+Temp. Charge    : 48.2 °C
+Delta           : +0.3 °C
+
+3. EFFICACITÉ
+-----------------------
+Conso Idle      : 3.43 W
+Conso Charge    : 4.80 W
+DELTA IA        : 1.37 W
+EFFICACITÉ      : 32.40 FPS/Watt
+===================================================
