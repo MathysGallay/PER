@@ -8,6 +8,11 @@ import threading
 import datetime
 import os
 import signal
+import sys
+
+# Ajout du répertoire parent pour l'import de l'interpréteur
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from interpretation.trt_llm_interpreter import TrtLlmInterpreter
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse, HTMLResponse
@@ -34,6 +39,10 @@ csv_lock = threading.Lock()
 accumulator = None
 last_movement_time = 0
 is_inferencing = True  # On commence actif par défaut
+last_interpretation = ""  # Texte d'interprétation courant
+
+# Initialisation de l'interpréteur
+interpreter = TrtLlmInterpreter()
 
 # Répertoire de base = dossier du script (src/inference/)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -82,7 +91,11 @@ async def status_stream(request: Request):
             if await request.is_disconnected():
                 break
             state = "INFERENCE ACTIVE" if is_inferencing else "IDLE (Monitoring)"
-            data = json.dumps({"status": state, "active": is_inferencing})
+            data = json.dumps({
+                "status": state,
+                "active": is_inferencing,
+                "interpretation": last_interpretation
+            })
             yield f"data: {data}\n\n"
             await asyncio.sleep(0.5)
     return StreamingResponse(event_generator(), media_type="text/event-stream")
@@ -242,7 +255,7 @@ def save_artifacts():
 # --- BOUCLE PRINCIPALE (REMPLACE GSTREAMER) ---
 
 def main_camera_loop():
-    global last_frame_heatmap, last_frame_inference, is_inferencing, last_movement_time
+    global last_frame_heatmap, last_frame_inference, is_inferencing, last_movement_time, last_interpretation
     
     print(f"Ouverture caméra index {CAMERA_INDEX}...")
     cap = cv2.VideoCapture(CAMERA_INDEX)
@@ -294,6 +307,17 @@ def main_camera_loop():
             
             # Logging CSV
             log_detection_to_csv(results)
+            
+            # Interprétation des détections
+            result = results[0]
+            detections = []
+            for box in result.boxes:
+                cls_id = int(box.cls[0])
+                detections.append({
+                    "label": result.names[cls_id],
+                    "conf": float(box.conf[0])
+                })
+            last_interpretation = interpreter.interpret(detections)
             
             # Dessin des boîtes (Annotated frame)
             annotated_frame = results[0].plot()
