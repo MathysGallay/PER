@@ -1,0 +1,179 @@
+═══════════════════════════════════════════════════════════════════════
+  SCRIPT VIDÉO - PER 2025-046
+  Cartes de chaleur nocturnes par caméra thermique pour le suivi 
+  d'animaux sauvages
+═══════════════════════════════════════════════════════════════════════
+
+PROJET
+------
+Titre : Cartes de chaleur nocturnes par caméra thermique pour le suivi d'animaux sauvages
+Étudiants : Yanis Lamiri, Yanis Abdellaoui, Mathys Gallay
+Formation : SI5-IAID, Polytech Nice Sophia
+Encadrant : Jean Martinet 
+Période : Octobre 2025 - Février 2026
+Contact : polytech.unice.fr
+
+═══════════════════════════════════════════════════════════════════════
+
+SECTION 1 : VULGARISATION (0:00 - 0:30) - 30 secondes
+------------------------------------------------------
+
+[VISUEL : Images d'animaux de zoo la nuit]
+
+"Imaginez un instant : vous êtes soigneur dans un zoo et vous souhaitez 
+comprendre comment les animaux se comportent la nuit, quand il n'y a plus 
+de visiteurs. Sont-ils actifs ? Stressés ? Où se déplacent-ils ?
+
+Le problème : les caméras classiques ne fonctionnent pas dans le noir, et 
+ajouter de la lumière perturberait les animaux.
+
+[VISUEL : Caméra thermique Topdon TC001]
+
+Notre solution ? Une caméra thermique intelligente qui voit la chaleur et 
+non la lumière ! Couplée à de l'intelligence artificielle embarquée, elle 
+détecte automatiquement les animaux et génère des cartes de chaleur pour 
+visualiser leur activité nocturne.
+
+═══════════════════════════════════════════════════════════════════════
+
+SECTION 2 : TECHNIQUE (0:30 - 1:30) - 1 minute
+-----------------------------------------------
+
+[VISUEL : Schéma du pipeline + images thermiques]
+
+Pour réaliser cela, nous avons développé une pipeline complète :
+
+CONCEPT CLÉ N°1 : L'IMAGERIE THERMIQUE
+Notre caméra thermique low-cost Topdon TC001 capture les émissions 
+infrarouges des animaux, même dans l'obscurité totale. Résolution 
+256x192 pixels suffisante pour la détection.
+
+[VISUEL : Démonstration détection YOLO sur image thermique]
+
+CONCEPT CLÉ N°2 : LA DÉTECTION PAR INTELLIGENCE ARTIFICIELLE
+Nous avons entraîné un modèle de détection YOLOv10s, spécialement 
+adapté aux images thermiques. Ce modèle identifie et localise les 
+animaux frame par frame avec précision.
+
+[VISUEL : Animation heatmap qui se construit progressivement]
+
+CONCEPT CLÉ N°3 : LES CARTES DE CHALEUR D'ACTIVITÉ
+En accumulant les mouvements détectés au fil du temps, nous générons 
+des cartes de chaleur qui révèlent les zones préférées des animaux et 
+leurs patterns comportementaux.
+
+[VISUEL : Raspberry Pi 5 + Hailo / Jetson Nano]
+
+CONCEPT CLÉ N°4 : L'EMBARQUÉ ET L'EDGE AI
+Tout fonctionne sur du matériel compact et économe en énergie :
+- Raspberry Pi 5 avec accélérateur Hailo-8L
+- NVIDIA Jetson Nano avec TensorRT
+Pas besoin de cloud : l'analyse se fait sur place, en temps réel.
+
+═══════════════════════════════════════════════════════════════════════
+
+SECTION 3 : RÉSULTATS ET DÉMONSTRATION (1:30 - 1:50) - 20 secondes
+------------------------------------------------------------------
+
+[VISUEL : Vidéo live de détection thermique + heatmaps générées]
+
+Le système fonctionne de la manière suivante : la caméra thermique  filme en continu, l'intelligence 
+artificielle repère automatiquement les animaux dans l'obscurité totale, 
+et au fil des heures, une carte de chaleur colorée que l'on appelle une heatmap se dessine, montrant 
+où les animaux passent le plus de temps.
+
+[VISUEL : Comparaison de différentes plateformes avec icônes simples]
+
+Nous avons testé plusieurs ordinateurs miniatures, la jetson orin nano et la raspberry pi5 + Hailo. Le plus performant 
+analyse plus de 200 images par seconde avec une efficacité enrgétique de 33.6 fps par watt - c'est si rapide qu'aucun 
+mouvement n'échappe au système, même un animal qui court !
+
+[VISUEL : Graphique simple consommation énergétique avec batterie]
+
+L'appareil fonctionne avec très peu d'électricité, comme une ampoule LED. 
+Il peut tourner toute la nuit sur batterie pour observer les comportements 
+des animaux dans leur environnement naturel, sans les déranger.
+
+PUBLIC CIBLÉ :
+✓ Soigneurs et vétérinaires en zoo pour le suivi du bien-être animal
+✓ Chercheurs en comportement animal et écologie
+✓ Gestionnaires d'espaces naturels protégés
+✓ Éleveurs pour surveillance nocturne du bétail
+
+═══════════════════════════════════════════════════════════════════════
+
+SECTION 4 : CONCLUSION HONNÊTE (1:50 - 2:00) - 10 secondes
+----------------------------------------------------------
+
+[VISUEL : Équipe + logos Polytech/UCA]
+
+Notre preuve de concept fonctionne en conditions contrôlées, mais des 
+défis restent à relever : variabilité météo, conditions extérieures 
+réelles, classification fine des comportements.
+
+Ce projet ouvre la voie vers une surveillance non-invasive et intelligente 
+du bien-être animal. L'avenir appartient à ceux qui regardent dans 
+l'infrarouge !
+
+Merci de votre attention.
+
+═══════════════════════════════════════════════════════════════════════
+
+NOTES DE PRODUCTION
+-------------------
+
+STORYBOARD VISUEL :
+-------------------
+✓ 0:00-0:10 : Images d'animaux de zoo jour/nuit, problématique
+✓ 0:10-0:20 : Caméra thermique en action avec image RGB vs thermique
+✓ 0:20-0:30 : Exemple de carte de chaleur animée
+✓ 0:30-0:50 : Schéma pipeline avec annotations (acquisition→détection→heatmap)
+✓ 0:50-1:10 : Démonstration live de détection sur vidéo thermique
+✓ 1:10-1:30 : Hardware (gros plans RPi5, Jetson, Hailo)
+✓ 1:30-1:40 : Graphiques benchmarks + comparaisons FPS/Watt
+✓ 1:40-1:50 : Montage rapide de cartes de chaleur différentes
+✓ 1:50-2:00 : Photo équipe + coordonnées + logos
+
+ÉLÉMENTS À INCLURE :
+-------------------
+- Logo Polytech Nice Sophia
+- Logo Université Côte d'Azur
+- Noms complets des étudiants en overlay
+- Contact : jean.martinet@polytech.unice.fr
+- GitHub ou lien projet si applicable
+
+CONSEILS NARRATION :
+-------------------
+- Ton dynamique et accessible
+- Éviter jargon excessif dans partie vulgarisation
+- Ralentir légèrement sur les concepts clés techniques
+- Montrer enthousiasme mais rester factuel dans résultats
+- Sourire et contact visuel caméra si présentiel
+
+TOUCHES CRÉATIVES SUGGÉRÉES :
+-----------------------------
+- Transition amusante RGB→thermique (effet "vision thermique")
+- Animation de la heatmap qui se remplit progressivement
+- Comparaison côte-à-côte nuit totale RGB vs thermique
+- Petit clin d'œil : "Predator vision, mais pour le bien animal !"
+- Timeline animée du projet (oct→fév)
+
+QUALITÉ SON/IMAGE :
+------------------
+- Microphone-cravate ou directionnel pour voix claire
+- Fond neutre ou lab/environnement projet
+- Éclairage facial adéquat
+- Musique de fond légère (libre de droits !)
+- Sous-titres conseillés pour accessibilité
+
+CRÉDITS À PRÉVOIR :
+------------------
+- Images thermiques : © Équipe PER2025-046
+- Dataset : Roboflow (mentionner si requis par licence)
+- Frameworks : Ultralytics YOLO, OpenCV, GStreamer, Hailo SDK
+- Musique : [source à préciser]
+- Support : Polytech Nice Sophia / Jean Martinet
+
+═══════════════════════════════════════════════════════════════════════
+FIN DU SCRIPT
+═══════════════════════════════════════════════════════════════════════
