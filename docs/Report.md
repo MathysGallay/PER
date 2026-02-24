@@ -1,7 +1,7 @@
 # PER2025-046 — Cartes de chaleur nocturnes par caméra thermique pour le suivi d'animaux sauvages
 
-> **Objectif :** concevoir et valider une pipeline de vision embarquée légère qui surveille les animaux la nuit par imagerie thermique, produit des **cartes de chaleur d'activité**, et stocke les sorties de détection/suivi pour analyse ultérieure.  
-> **Contexte :** suivi en zoo / bien-être animal et compréhension des comportements nocturnes.
+> Objectif : concevoir et valider une pipeline de vision embarquée légère qui surveille les animaux la nuit par imagerie thermique, produit des cartes de chaleur d'activité, et stocke les sorties de détection/suivi pour analyse ultérieure.  
+> Contexte : suivi en zoo / bien-être animal et compréhension des comportements nocturnes.
 
 ---
 
@@ -22,12 +22,12 @@
 ## 1. Identification du projet
 
 ### 1.1 Titre
-**Cartes de chaleur nocturnes par caméra thermique pour le suivi d'animaux sauvages**
+Cartes de chaleur nocturnes par caméra thermique pour le suivi d'animaux sauvages
 
 ### 1.2 Équipe
-- **Yanis Lamiri, SI5-IAID** — Matériel / Intégration embarquée sur Raspberry pi 5 + accélérateur Hailo
-- **Yanis Abdellaoui, SI5-IAID** — Suivi / Métriques comportementales et analyse   / Intégration embarquée sur Jetson Orin Nanon
-- **Mathys Gallay, SI5-IAID** — Vision thermique / Modèle de détection (fine-tuning YOLO)  
+- Yanis Lamiri, SI5-IAID — Matériel / Intégration embarquée sur Raspberry pi 5 + accélérateur Hailo
+- Yanis Abdellaoui, SI5-IAID — Suivi / Métriques comportementales et analyse   / Intégration embarquée sur Jetson Orin Nanon
+- Mathys Gallay, SI5-IAID — Vision thermique / Modèle de détection (fine-tuning YOLO)  
 
 ### 1.3 Enseignant référent
 Jean Martinet
@@ -50,14 +50,14 @@ Imagerie thermique, Vision embarquée, Edge AI, YOLO, Suivi, Cartes de chaleur, 
 
 ### 2.1 Problème et motivation
 
-Comprendre les **comportements nocturnes** est utile pour les zoos et le bien-être animal : les animaux peuvent montrer la nuit des comportements différents de ceux observés le jour (absence de visiteurs, stress réduit, conditions environnementales et météorologiques). Ces différences aident à interpréter la fatigue, peur, agressivité, stéréotypes, et plus généralement à améliorer l'aménagement des enclos et les pratiques de suivi.
+Comprendre les comportements nocturnes est utile pour les zoos et le bien-être animal : les animaux peuvent montrer la nuit des comportements différents de ceux observés le jour (absence de visiteurs, stress réduit, conditions environnementales et météorologiques). Ces différences aident à interpréter la fatigue, peur, agressivité, stéréotypes, et plus généralement à améliorer l'aménagement des enclos et les pratiques de suivi.
 
 La surveillance RGB classique devient difficile la nuit :
 - nécessite un éclairage additionnel (qui peut perturber les animaux),
 - souffre de bruit en basse luminosité,
 - produit des résultats instables dans les scènes sombres.
 
-L'imagerie thermique est une alternative naturelle car elle ne dépend **pas de la lumière visible** et capte les émissions infrarouges. Cependant, les capteurs thermiques low-cost imposent des contraintes (résolution, bruit, texture limitée) qui impactent la détection et suivi.
+L'imagerie thermique est une alternative naturelle car elle ne dépend pas de la lumière visible et capte les émissions infrarouges. Cependant, les capteurs thermiques low-cost imposent des contraintes (résolution, bruit, texture limitée) qui impactent la détection et suivi.
 
 ### 2.2 Utilisateurs cibles
 
@@ -67,11 +67,11 @@ L'imagerie thermique est une alternative naturelle car elle ne dépend **pas de 
 
 ### 2.3 Périmètre (Ce que nous livrons)
 
-Nous nous concentrons sur une **pipeline embarquée de bout en bout**, pragmatique, conçue comme preuve de concept :
+Nous nous concentrons sur une pipeline embarquée de bout en bout, pragmatique, conçue comme preuve de concept :
 
 - Acquisition de frames thermiques via une caméra thermique low-cost (Topdon TC001).
-- Détection de mouvement et accumulation d'activité dans des **cartes de chaleur**.
-- Détection d'animaux avec un détecteur **fine-tuné pour l'imagerie thermique** (YOLOv10s).
+- Détection de mouvement et accumulation d'activité dans des cartes de chaleur.
+- Détection d'animaux avec un détecteur fine-tuné pour l'imagerie thermique (YOLOv10s).
 - Suivi optionnel des détections dans le temps.
 - Stockage des résultats (détections, trajectoires, heatmaps, métadonnées) pour analyse ultérieure.
 
@@ -97,8 +97,8 @@ Cette section documente le **raisonnement d'ingénierie** : nous avons explorés
 
 ### 3.2 Options de capteurs envisagées
 
-- **Caméra RGB** : rejetée comme capteur principal la nuit (problèmes d'éclairage).
-- **Caméra thermique** : retenue pour la robustesse nocturne, mais il faut gérer :
+- Caméra RGB : rejetée comme capteur principal la nuit (problèmes d'éclairage).
+- Caméra thermique : retenue pour la robustesse nocturne, mais il faut gérer :
   - la faible résolution,
   - la faible texture,
   - les artefacts thermiques de fond (dépendance à ΔT).
@@ -107,19 +107,19 @@ Cette section documente le **raisonnement d'ingénierie** : nous avons explorés
 
 Nous avons évalué trois familles d'architectures embarquées :
 
-- **CPU seul (Raspberry Pi)**  
+- CPU seul (Raspberry Pi)  
   Avantages : simple, faible coût  
   Inconvénients : inférence deep learning souvent trop lente (goulot mémoire).
 
-- **Accélérateur NPU (Raspberry Pi + Hailo-8L)**  
+- Accélérateur NPU (Raspberry Pi + Hailo-8L)  
   Avantages : excellentes perfs par watt, adapté sur batterie  
   Inconvénients : quantification INT8 et outils spécifiques.
 
-- **GPU embarqué (famille NVIDIA Jetson)**  
+- GPU embarqué (famille NVIDIA Jetson)  
   Avantages : flexible, FP16/FP32, écosystème TensorRT  
   Inconvénients : consommation plus élevée et contraintes thermiques.
 
-**Logique de décision :** pour un système autonome/sur batterie, les NPU sont attractifs ; pour l'expérimentation rapide et la flexibilité, Jetson est un bon baseline. Le benchmarking reste donc central pour quantifier le compromis vitesse/énergie.
+Logique de décision : pour un système autonome/sur batterie, les NPU sont attractifs ; pour l'expérimentation rapide et la flexibilité, Jetson est un bon baseline. Le benchmarking reste donc central pour quantifier le compromis vitesse/énergie.
 
 ### 3.4 Options d'architecture algorithmique
 
@@ -130,15 +130,15 @@ Nous avons évalué trois familles d'architectures embarquées :
   - des sorties interprétables,
   - une façon de restreindre la zone d'intérêt pour détection/suivi.
 
-**Choix :** heatmap-first est la colonne vertébrale du système.
+Choix : heatmap-first est la colonne vertébrale du système.
 
 #### B) Pré-traitement lourd (super-résolution / reconstruction) vs filtrage léger
 L'état de l'art thermique inclut super-résolution et reconstruction profonde, mais c'est coûteux pour l'embarqué.
-**Choix :** garder l'inférence embarquée légère ; si augmentation avancée, la réserver à l'entraînement offline.
+Choix : garder l'inférence embarquée légère ; si augmentation avancée, la réserver à l'entraînement offline.
 
 
 
-**Choix :** privilégier un suivi léger, surtout pour les contraintes embarquées.
+Choix : privilégier un suivi léger, surtout pour les contraintes embarquées.
 
 ---
 
@@ -174,7 +174,7 @@ La plupart des approches existantes optimisent soit :
 - la précision de détection avec un calcul lourd,
 - soit l'analyse comportementale sans fortes contraintes d'autonomie embarquée.
 
-Notre positionnement : **une pipeline embarquée de bout en bout** combinant :
+Notre positionnement : une pipeline embarquée de bout en bout combinant :
 - accumulation de heatmap basée mouvement,
 - détection d'objets adaptée au thermique (YOLO fine-tune),
 - suivi léger,
@@ -189,7 +189,7 @@ Cette section répond : **ce que nous avons construit** et **comment nous l'avon
 ### 5.1 Produit : pipeline de bout en bout
 
 #### 5.1.1 Couche acquisition (caméra thermique)
-- Capteur : **Topdon TC001**
+- Capteur : Topdon TC001
 - Sortie : frames thermiques streamées vers l'unité de traitement.
 - Difficulté clé : faible texture des frames thermiques, nécessite normalisation/traitement soigné.
 
@@ -221,8 +221,7 @@ Nous planifions/implémentons un suivi léger :
 - calcul d'occupation spatiale pour enrichir la heatmap.
 
 #### 5.1.5 Sorties et stockage
-La pipeline stocke :
-afin que l'analyse puisse se faire plus tard sans retraiter la vidéo brute.
+La pipeline stocke les heatmaps et prend des screens lorsque des détections se font par le modèle afin que l'analyse puisse se faire plus tard
 
 #### 5.1.6 Illustration du pipeline
 ![Pipeline de traitement thermique](../results/pipeline.png)
@@ -236,36 +235,36 @@ afin que l'analyse puisse se faire plus tard sans retraiter la vidéo brute.
 Nous documentons toutes les méthodes tentées, avec les raisons pour lesquelles certaines n'ont pas été retenues dans la pipeline finale.
 
 #### A) Sous-ensemble Mini-COCO animaux (archive_v1)
-- **Méthode :** filtrer les annotations COCO sur 10 classes animales et générer les labels YOLO ; télécharger un nombre limité d'images.
-- **Pourquoi cela n'a pas bien fonctionné :** COCO est RGB, pas thermique. L'écart de domaine vers les frames thermiques réelles a dégradé le transfert, et le sous-ensemble était trop petit pour bien généraliser.
+- Méthode : filtrer les annotations COCO sur 10 classes animales et générer les labels YOLO ; télécharger un nombre limité d'images.
+- Pourquoi cela n'a pas bien fonctionné : COCO est RGB, pas thermique. L'écart de domaine vers les frames thermiques réelles a dégradé le transfert, et le sous-ensemble était trop petit pour bien généraliser.
 
 #### B) Simulation RGB → thermique (archive_v1)
-- **Méthode :** downscale 256x192, grayscale, réduction de texture (blur), jitter luminosité/contraste, bruit thermique, colormap JET.
-- **Pourquoi cela n'a pas bien fonctionné :** l'apparence thermique simulée ne reproduisait pas les artefacts du capteur ni le contraste dépendant de la température, donc le détecteur sur-apprenait des motifs synthétiques.
+- Méthode : downscale 256x192, grayscale, réduction de texture (blur), jitter luminosité/contraste, bruit thermique, colormap JET.
+- Pourquoi cela n'a pas bien fonctionné : l'apparence thermique simulée ne reproduisait pas les artefacts du capteur ni le contraste dépendant de la température, donc le détecteur sur-apprenait des motifs synthétiques.
 
 #### C) Augmentation de données thermiques (archive_v1)
-- **Méthode :** flip, crop/resize, blur, ajout de bruit pour étendre le dataset synthétique.
-- **Pourquoi cela n'a pas bien fonctionné :** l'augmentation augmente la variété mais ne comble pas le gap de domaine et reste différente du bruit thermique réel.
+- Méthode : flip, crop/resize, blur, ajout de bruit pour étendre le dataset synthétique.
+- Pourquoi cela n'a pas bien fonctionné : l'augmentation augmente la variété mais ne comble pas le gap de domaine et reste différente du bruit thermique réel.
 
 #### D) Pipeline YOLOv5 en notebooks (archive_v1)
-- **Méthode :** entraînement de bout en bout via notebooks avec le dataset synthétique.
-- **Pourquoi cela n'a pas bien fonctionné :** résultats peu reproductibles pour une pipeline stable et performances insuffisantes sur frames thermiques réelles.
+- Méthode : entraînement de bout en bout via notebooks avec le dataset synthétique.
+- Pourquoi cela n'a pas bien fonctionné : résultats peu reproductibles pour une pipeline stable et performances insuffisantes sur frames thermiques réelles.
 
 #### E) Acquisition de dataset via Roboflow (actuel)
-- **Méthode :** le script d'entraînement télécharge un dataset thermique curate depuis Roboflow au format YOLOv8.
-- **Pourquoi cela marche mieux :** données thermiques réelles réduisent l'écart de domaine, et la pipeline garantit la reproductibilité.
+- Méthode : le script d'entraînement télécharge un dataset thermique curate depuis Roboflow au format YOLOv8.
+- Pourquoi cela marche mieux : données thermiques réelles réduisent l'écart de domaine, et la pipeline garantit la reproductibilité.
 
 #### F) Entraînement YOLO Ultralytics (actuel)
-- **Méthode :** entraîner avec résolution thermique (256x192), epochs/patience ajustés, et sorties structurées.
-- **Pourquoi cela marche mieux :** correspond à la résolution capteur et s'appuie sur une API d'entraînement stable.
+- Méthode : entraîner avec résolution thermique (256x192), epochs/patience ajustés, et sorties structurées.
+- Pourquoi cela marche mieux : correspond à la résolution capteur et s'appuie sur une API d'entraînement stable.
 
 #### G) Traitement motion heatmap-first (actuel)
-- **Méthode :** soustraction de fond MOG2, nettoyage morphologique, accumulation du mouvement en heatmap.
-- **Pourquoi cela marche mieux :** fournit un signal interprétable et peu coûteux, même quand la détection n'est pas parfaite.
+- Méthode : soustraction de fond MOG2, nettoyage morphologique, accumulation du mouvement en heatmap.
+- Pourquoi cela marche mieux : fournit un signal interprétable et peu coûteux, même quand la détection n'est pas parfaite.
 
 #### H) Inférence embarquée avec Hailo (actuel)
-- **Méthode :** pipeline GStreamer avec post-traitement Hailo, streaming live, et inférence optionnellement gâtée par le mouvement.
-- **Pourquoi cela marche mieux :** inférence temps réel sous contraintes embarquées, avec une trajectoire vers un déploiement énergie-efficace.
+- Méthode : pipeline GStreamer avec post-traitement Hailo, streaming live, et inférence optionnellement gâtée par le mouvement.
+- Pourquoi cela marche mieux : inférence temps réel sous contraintes embarquées, avec une trajectoire vers un déploiement énergie-efficace.
 
 ---
 
@@ -282,16 +281,16 @@ Points valides à ce jour :
 
 Nous évaluons selon trois axes :
 
-1. **Métriques vision**
+1. Métriques vision
   - Précision / Recall / mAP (détection)
   - analyse qualitative des erreurs (faux positifs dus au bruit thermique, petits animaux manqués)
 
-2. **Métriques système**
+2. Métriques système
   - latence / FPS de bout en bout
   - utilisation CPU/NPU/GPU
   - consommation (si mesurable)
 
-3. **Métriques comportementales proxy**
+3. Métriques comportementales proxy
   - occupation spatiale
   - temps passé par zone
   - intensité d'activité dans le temps
@@ -328,16 +327,18 @@ L'analyse des résultats met en évidence le rôle prépondérant de l'optimisat
 2. **Comparaison Embarqué vs Stationnaire**  
 Bien que le PC Portable (RTX 4060) soit une machine puissante, il est surpassé en vitesse d'inférence pure par la Jetson Nano optimisée (82 FPS contre 214 FPS) dans ce contexte spécifique. Cela s'explique probablement par le fait que le modèle utilisé est léger et profite pleinement de l'architecture dédiée de la Jetson sans subir l'overhead d'un système d'exploitation de bureau.
 
-3. **Efficacité énergétique et autonomie**  
+3. Efficacité énergétique et autonomie  
 Le critère décisif pour un dispositif de surveillance de la faune sauvage est la consommation.
-• **Consommation brute** : La configuration RPi 5 + Hailo-8L s'avère être la plus économe en charge, consommant seulement 4.80 W, contre 6.37 W pour la Jetson Nano (TensorRT) et plus de 17 W pour le PC.
-• **Rendement (FPS/Watt)** : Si l'on rapporte la performance à la consommation, la Jetson Nano (TensorRT) et la RPi 5 + Hailo-8L sont au coude-à-coude avec respectivement 33.6 et 32.4 FPS/Watt.
+• Consommation brute : La configuration RPi 5 + Hailo-8L s'avère être la plus économe en charge, consommant seulement 4.80 W, contre 6.37 W pour la Jetson Nano (TensorRT) et plus de 17 W pour le PC.
+• Rendement (FPS/Watt) : Si l'on rapporte la performance à la consommation, la Jetson Nano (TensorRT) et la RPi 5 + Hailo-8L sont au coude-à-coude avec respectivement 33.6 et 32.4 FPS/Watt.
 
-**Conclusion sur le choix matériel**  
+Conclusion sur le choix matériel  
 L'analyse croisée des benchmarks permet de justifier le choix final :
 • Le PC Portable est disqualifié pour un usage terrain à cause de son inefficacité énergétique (seulement 4.7 FPS/Watt).
 • La Jetson Nano avec TensorRT offre la meilleure performance brute et la latence la plus faible, idéale si le traitement algorithmique se complexifie (ajout de classification fine).
 • La RPi 5 + Hailo-8L représente le meilleur compromis pour l'autonomie pure (consommation absolue la plus basse) tout en maintenant un framerate temps réel solide (44.4 FPS).
+
+Pour ce projet, au vu de performances des cartes embarqués, nous avons choisi de retenir la jetson orin nano
 
 ---
 
@@ -398,8 +399,3 @@ Si des datasets/modèles externes ne sont pas commits, nous fournissons :
 ## 10. Dépôt GitHub
 
 Le code, les scripts et la documentation sont disponibles sur : [https://github.com/MathysGallay/PER](https://github.com/MathysGallay/PER)
-4. **Ajout du suivi et des métriques comportementales** une fois la détection stable.
-
-Cet ordre réduit le risque :
-- la heatmap produit déjà un résultat utile avant que la détection soit parfaite,
-- détection et suivi peuvent être améliorés progressivement.
