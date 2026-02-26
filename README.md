@@ -1,6 +1,6 @@
-# PER - Object Detection on Thermal Images
+# PER - Animal Detection on Thermal Images
 
-This repository contains the PER project for object detection with YOLO on thermal images.
+This repository contains the PER project for animal detection with YOLO on thermal images.
 
 ## Quick Start
 
